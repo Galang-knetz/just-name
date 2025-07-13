@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Te-Form Flashcards</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .header {
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff6b6b, #feca57);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            color: white;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+        }
+
+        .card-container {
+            perspective: 1000px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            width: 100%;
+            height: 300px;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+        }
+
+        .card.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            background: white;
+        }
+
+        .card-back {
+            transform: rotateY(180deg);
+        }
+
+        .te-form {
+            font-size: 4rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .card-content {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .masu-form {
+            font-size: 2rem;
+            color: #ff6b6b;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .meaning {
+            font-size: 1.5rem;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: white;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #ff6b6b, #feca57);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(45deg, #4ecdc4, #44a08d);
+        }
+
+        .btn-danger {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a6f);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .modes {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .mode-btn {
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid transparent;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .mode-btn.active {
+            background: white;
+            color: #667eea;
+            border-color: white;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            color: white;
+            font-size: 0.9rem;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 1.2rem;
+            font-weight: bold;
+            display: block;
+        }
+
+        .flip-hint {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+            margin-top: 10px;
+        }
+
+        .timer-container {
+            width: 80%;
+            margin: 10px auto 0;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .timer-bar {
+            height: 100%;
+            background: white;
+            width: 100%;
+            transition: width 10s linear;
+        }
+
+        @media (max-width: 480px) {
+            .te-form {
+                font-size: 3rem;
+            }
+            
+            .masu-form {
+                font-size: 1.5rem;
+            }
+            
+            .meaning {
+                font-size: 1.2rem;
+            }
+            
+            .card {
+                height: 250px;
+            }
+        }
+
+        .shake {
+            animation: shake 0.5s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Te-Form Flashcards</h1>
+            <p>Belajar Bentuk Te dalam Bahasa Jepang</p>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <div class="progress-text" id="progressText">1 / 62</div>
+
+        <div class="modes">
+            <button class="mode-btn active" data-mode="sequential">Berurutan</button>
+            <button class="mode-btn" data-mode="random">Acak</button>
+            <button class="mode-btn" data-mode="review">Review</button>
+        </div>
+
+        <div class="card-container">
+            <div class="card" id="flashcard">
+                <div class="card-face card-front">
+                    <div class="te-form" id="teFormDisplay">おきて</div>
+                    <div class="flip-hint">Klik untuk melihat jawaban</div>
+                    <div class="timer-container">
+                        <div class="timer-bar" id="timerBar"></div>
+                    </div>
+                </div>
+                <div class="card-face card-back">
+                    <div class="card-content">
+                        <div class="masu-form" id="masuFormDisplay">おきます</div>
+                        <div class="meaning" id="meaningDisplay">bangun</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn btn-danger" id="prevBtn">← Sebelumnya</button>
+            <button class="btn btn-primary" id="flipBtn">Balik Kartu</button>
+            <button class="btn btn-secondary" id="nextBtn">Berikutnya →</button>
+        </div>
+
+        <div class="stats">
+            <div class="stat-item">
+                <span class="stat-number" id="totalCards">62</span>
+                <span>Total</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number" id="currentCard">1</span>
+                <span>Saat Ini</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number" id="remainingCards">61</span>
+                <span>Tersisa</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const teFormData = [
+            { teForm: 'おきて', masuForm: 'おきます', meaning: 'bangun' },
+            { teForm: 'ねて', masuForm: 'ねます', meaning: 'tidur' },
+            { teForm: 'はたらいて', masuForm: 'はたらきます', meaning: 'bekerja' },
+            { teForm: 'やすんで', masuForm: 'やすみます', meaning: 'istirahat' },
+            { teForm: 'べんきょうして', masuForm: 'べんきょうします', meaning: 'belajar' },
+            { teForm: 'おわって', masuForm: 'おわります', meaning: 'selesai' },
+            { teForm: 'いって', masuForm: 'いきます', meaning: 'pergi' },
+            { teForm: 'かえって', masuForm: 'かえります', meaning: 'pulang' },
+            { teForm: 'たべて', masuForm: 'たべます', meaning: 'makan' },
+            { teForm: 'のんで', masuForm: 'のみます', meaning: 'minum' },
+            { teForm: 'すって', masuForm: 'すいます', meaning: 'menghisap' },
+            { teForm: 'みて', masuForm: 'みます', meaning: 'melihat' },
+            { teForm: 'きいて', masuForm: 'ききます', meaning: 'mendengar' },
+            { teForm: 'よんで', masuForm: 'よみます', meaning: 'membaca' },
+            { teForm: 'かいて', masuForm: 'かきます', meaning: 'menulis' },
+            { teForm: 'かって', masuForm: 'かいます', meaning: 'membeli' },
+            { teForm: 'とって', masuForm: 'とります', meaning: 'mengambil' },
+            { teForm: 'あって', masuForm: 'あいます', meaning: 'bertemu' },
+            { teForm: 'きって', masuForm: 'きります', meaning: 'memotong' },
+            { teForm: 'おくって', masuForm: 'おくります', meaning: 'mengirim' },
+            { teForm: 'あげて', masuForm: 'あげます', meaning: 'memberi' },
+            { teForm: 'もらって', masuForm: 'もらいます', meaning: 'mendapatkan' },
+            { teForm: 'かして', masuForm: 'かします', meaning: 'meminjamkan' },
+            { teForm: 'かりて', masuForm: 'かります', meaning: 'meminjam' },
+            { teForm: 'おしえて', masuForm: 'おしえます', meaning: 'memberitahukan' },
+            { teForm: 'ならって', masuForm: 'ならいます', meaning: 'mempelajari' },
+            { teForm: 'かけて', masuForm: 'かけます', meaning: 'menelepon' },
+            { teForm: 'わかって', masuForm: 'わかります', meaning: 'mengerti' },
+            { teForm: 'あって', masuForm: 'あります', meaning: 'paham' },
+            { teForm: 'いて', masuForm: 'います', meaning: 'ada' },
+            { teForm: 'かかって', masuForm: 'かかります', meaning: 'memerlukan waktu' },
+            { teForm: 'あそんで', masuForm: 'あそびます', meaning: 'bermain' },
+            { teForm: 'およいで', masuForm: 'およぎます', meaning: 'berenang' },
+            { teForm: 'むかえて', masuForm: 'むかえます', meaning: 'menjemput' },
+            { teForm: 'つかれて', masuForm: 'つかれます', meaning: 'lelah' },
+            { teForm: 'けっこんして', masuForm: 'けっこんします', meaning: 'menikah' },
+            { teForm: 'かいものして', masuForm: 'かいものします', meaning: 'belanja' },
+            { teForm: 'しょくじして', masuForm: 'しょくじします', meaning: 'makan' },
+            { teForm: 'さんぽして', masuForm: 'さんぽします', meaning: 'jalan-jalan' },
+            { teForm: 'つけて', masuForm: 'つけます', meaning: 'menyalakan' },
+            { teForm: 'けして', masuForm: 'けします', meaning: 'mematikan' },
+            { teForm: 'あけて', masuForm: 'あけます', meaning: 'membuka' },
+            { teForm: 'しめて', masuForm: 'しめます', meaning: 'menutup' },
+            { teForm: 'いそいで', masuForm: 'いそぎます', meaning: 'buru-buru' },
+            { teForm: 'まって', masuForm: 'まちます', meaning: 'menunggu' },
+            { teForm: 'もって', masuForm: 'もちます', meaning: 'membawa' },
+            { teForm: 'てつだって', masuForm: 'てつだいます', meaning: 'membantu' },
+            { teForm: 'よんで', masuForm: 'よびます', meaning: 'memanggil' },
+            { teForm: 'はなして', masuForm: 'はなします', meaning: 'berbicara' },
+            { teForm: 'つかって', masuForm: 'つかいます', meaning: 'menggunakan' },
+            { teForm: 'とめて', masuForm: 'とめます', meaning: 'menghentikan' },
+            { teForm: 'みせて', masuForm: 'みせます', meaning: 'memperlihatkan' },
+            { teForm: 'きて', masuForm: 'きます', meaning: 'datang' },
+            { teForm: 'して', masuForm: 'します', meaning: 'melakukan' },
+            { teForm: 'すわって', masuForm: 'すわります', meaning: 'duduk' },
+            { teForm: 'たって', masuForm: 'たちます', meaning: 'berdiri' },
+            { teForm: 'はいって', masuForm: 'はいります', meaning: 'masuk' },
+            { teForm: 'でて', masuForm: 'でます', meaning: 'keluar' },
+            { teForm: 'ふって', masuForm: 'ふります', meaning: 'turun (hujan)' },
+            // Tambahan baru
+            { teForm: 'おいて', masuForm: 'おきます', meaning: 'meletakkan' },
+            { teForm: 'つくって', masuForm: 'つくります', meaning: 'membuat' },
+            { teForm: 'うって', masuForm: 'うります', meaning: 'menjual' },
+            { teForm: 'しって', masuForm: 'しります', meaning: 'mengetahui' },
+            { teForm: 'すんで', masuForm: 'すみます', meaning: 'tinggal' },
+            { teForm: 'けんきゅうして', masuForm: 'けんきゅうします', meaning: 'meneliti' }
+        ];
+
+        let currentIndex = 0;
+        let isFlipped = false;
+        let mode = 'sequential';
+        let shuffledIndices = [];
+        let timer;
+        let timerInterval;
+
+        // DOM elements
+        const card = document.getElementById('flashcard');
+        const teFormDisplay = document.getElementById('teFormDisplay');
+        const masuFormDisplay = document.getElementById('masuFormDisplay');
+        const meaningDisplay = document.getElementById('meaningDisplay');
+        const flipBtn = document.getElementById('flipBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const prevBtn = document.getElementById('prevBtn');
+        const progressFill = document.getElementById('progressFill');
+        const progressText = document.getElementById('progressText');
+        const currentCardSpan = document.getElementById('currentCard');
+        const remainingCardsSpan = document.getElementById('remainingCards');
+        const totalCardsSpan = document.getElementById('totalCards');
+        const modeButtons = document.querySelectorAll('.mode-btn');
+        const timerBar = document.getElementById('timerBar');
+
+        // Initialize
+        function init() {
+            totalCardsSpan.textContent = teFormData.length;
+            shuffledIndices = Array.from({length: teFormData.length}, (_, i) => i);
+            updateCard();
+            updateProgress();
+            startTimer();
+        }
+
+        // Update card display
+        function updateCard() {
+            const dataIndex = mode === 'random' ? shuffledIndices[currentIndex] : currentIndex;
+            const data = teFormData[dataIndex];
+            
+            teFormDisplay.textContent = data.teForm;
+            masuFormDisplay.textContent = data.masuForm;
+            meaningDisplay.textContent = data.meaning;
+            
+            // Reset flip state
+            card.classList.remove('flipped');
+            isFlipped = false;
+            flipBtn.textContent = 'Balik Kartu';
+            
+            // Reset and start timer
+            resetTimer();
+            startTimer();
+        }
+
+        // Update progress
+        function updateProgress() {
+            const progress = ((currentIndex + 1) / teFormData.length) * 100;
+            progressFill.style.width = progress + '%';
+            progressText.textContent = `${currentIndex + 1} / ${teFormData.length}`;
+            currentCardSpan.textContent = currentIndex + 1;
+            remainingCardsSpan.textContent = teFormData.length - currentIndex - 1;
+            
+            // Update button states
+            prevBtn.disabled = currentIndex === 0;
+            nextBtn.disabled = currentIndex === teFormData.length - 1;
+        }
+
+        // Flip card
+        function flipCard() {
+            card.classList.toggle('flipped');
+            isFlipped = !isFlipped;
+            flipBtn.textContent = isFlipped ? 'Putar Lagi' : 'Balik Kartu';
+            
+            // Reset timer when flipping manually
+            resetTimer();
+            startTimer();
+        }
+
+        // Next card
+        function nextCard() {
+            if (currentIndex < teFormData.length - 1) {
+                currentIndex++;
+                updateCard();
+                updateProgress();
+            }
+        }
+
+        // Previous card
+        function prevCard() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                updateCard();
+                updateProgress();
+            }
+        }
+
+        // Shuffle array
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        // Change mode
+        function changeMode(newMode) {
+            mode = newMode;
+            currentIndex = 0;
+            
+            if (mode === 'random') {
+                shuffleArray(shuffledIndices);
+            }
+            
+            updateCard();
+            updateProgress();
+            
+            // Update mode buttons
+            modeButtons.forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.mode === mode) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+
+        // Timer functions
+        function startTimer() {
+            clearInterval(timerInterval);
+            timerBar.style.width = '100%';
+            timerBar.style.transition = 'none';
+            timerBar.offsetHeight; // Trigger reflow
+            timerBar.style.transition = 'width 10s linear';
+            timerBar.style.width = '0%';
+            
+            timer = setTimeout(() => {
+                if (!isFlipped) {
+                    flipCard();
+                } else {
+                    if (currentIndex < teFormData.length - 1) {
+                        nextCard();
+                    }
+                }
+            }, 10000);
+        }
+
+        function resetTimer() {
+            clearTimeout(timer);
+            clearInterval(timerInterval);
+            timerBar.style.width = '100%';
+            timerBar.style.transition = 'none';
+        }
+
+        // Event listeners
+        flipBtn.addEventListener('click', flipCard);
+        nextBtn.addEventListener('click', nextCard);
+        prevBtn.addEventListener('click', prevCard);
+        card.addEventListener('click', flipCard);
+
+        // Mode buttons
+        modeButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                changeMode(btn.dataset.mode);
+            });
+        });
+
+        // Keyboard controls
+        document.addEventListener('keydown', (e) => {
+            switch(e.key) {
+                case ' ':
+                case 'Enter':
+                    e.preventDefault();
+                    flipCard();
+                    break;
+                case 'ArrowRight':
+                    nextCard();
+                    break;
+                case 'ArrowLeft':
+                    prevCard();
+                    break;
+            }
+        });
+
+        // Initialize app
+        init();
+    </script>
+</body>
+</html>
